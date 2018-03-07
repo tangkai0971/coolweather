@@ -124,7 +124,7 @@ public class ChooseAreaFragment extends Fragment {
     private void queryProvinces() {
         titleText.setText("中国");
         backButton.setVisibility(View.GONE);
-        provinceList = DataSupport.findAll(Province.class);
+        provinceList =DataSupport.findAll(Province.class);
         if (provinceList.size() > 0) {
             dataList.clear();
             for (Province province : provinceList) {
@@ -187,50 +187,50 @@ public class ChooseAreaFragment extends Fragment {
     /**
      * 根据传入的地址和类型从服务器上查询省市县数据。
      */
-    private void queryFromServer(String address, final String type) {
+    private void queryFromServer(String address,final String type){
         showProgressDialog();
         HttpUtil.sendOkHttpRequest(address, new Callback() {
             @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                String responseText = response.body().string();
-                    boolean result = false;
+            public void onFailure(Call call, IOException e) {
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        closeProgressDialog();
+                        Toast.makeText(getContext(),"加载失败",Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+
+            @Override
+            public void onResponse(Call call, Response response)throws IOException {
+                String responseText=response.body().string();
+                boolean result=false;
                 if ("province".equals(type)) {
-                    result = Utility.handleProvinceResponse(responseText);
-                } else if ("city".equals(type)) {
-                    result = Utility.handleCityResponse(responseText, selectedProvince.getId());
-                } else if ("county".equals(type)) {
-                    result = Utility.handleCountyResponse(responseText, selectedCity.getId());
+                    result= Utility.handleProvinceResponse(responseText);
+                }else if ("city".equals(type)){
+                    result=Utility.handleCityResponse(responseText,selectedProvince.getId());
+                }else if ("county".equals(type)){
+                    result=Utility.handleCountyResponse(responseText,selectedCity.getId());
                 }
-                if (result) {
+                if (result){
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             closeProgressDialog();
-                            if ("province".equals(type)) {
+                            if ("province".equals(type)){
                                 queryProvinces();
-                            } else if ("city".equals(type)) {
+                            }else if ("city".equals(type)){
                                 queryCities();
-                            } else if ("county".equals(type)) {
+                            }else if ("county".equals(type)){
                                 queryCounties();
                             }
                         }
                     });
                 }
             }
-
-            @Override
-            public void onFailure(Call call, IOException e) {
-                // 通过runOnUiThread()方法回到主线程处理逻辑
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        closeProgressDialog();
-                        Toast.makeText(getContext(), "加载失败", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
         });
     }
+
 
     /**
      * 显示进度对话框
